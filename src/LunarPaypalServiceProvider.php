@@ -2,7 +2,10 @@
 
 namespace Dystcz\LunarPaypal;
 
+use Dystcz\LunarPaypal\Managers\PaypalManager;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
+use Lunar\Facades\Payments;
 
 class LunarPaypalServiceProvider extends ServiceProvider
 {
@@ -11,37 +14,28 @@ class LunarPaypalServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        /*
-         * Optional methods to load your package assets
-         */
-        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'lunar-paypal');
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'lunar-paypal');
-        // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // $this->loadRoutesFrom(__DIR__.'/routes.php');
+        // Register our payment type.
+        Payments::extend(
+            'paypal',
+            fn ($app) => $app->make(PaypalPaymentType::class)
+        );
+
+        $this->app->singleton(
+            'gc:paypal',
+            fn ($app) => $app->make(PaypalManager::class)
+        );
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/config.php' => config_path('lunar-paypal.php'),
-            ], 'config');
-
-            // Publishing the views.
-            /*$this->publishes([
-                __DIR__.'/../resources/views' => resource_path('views/vendor/lunar-paypal'),
-            ], 'views');*/
-
-            // Publishing assets.
-            /*$this->publishes([
-                __DIR__.'/../resources/assets' => public_path('vendor/lunar-paypal'),
-            ], 'assets');*/
-
-            // Publishing the translation files.
-            /*$this->publishes([
-                __DIR__.'/../resources/lang' => resource_path('lang/vendor/lunar-paypal'),
-            ], 'lang');*/
-
-            // Registering package commands.
-            // $this->commands([]);
+                __DIR__.'/../config/paypal.php' => config_path('lunar/paypal.php'),
+            ], 'lunar.paypal.config');
         }
+
+        // Set our config for the srmklive/paypal package.
+        Config::set('paypal', [
+            ...Config::get('paypal'),
+            ...Config::get('lunar.paypal'),
+        ]);
     }
 
     /**
@@ -50,11 +44,6 @@ class LunarPaypalServiceProvider extends ServiceProvider
     public function register()
     {
         // Automatically apply the package configuration
-        $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'lunar-paypal');
-
-        // Register the main class to use with the facade
-        $this->app->singleton('lunar-paypal', function () {
-            return new LunarPaypal;
-        });
+        $this->mergeConfigFrom(__DIR__.'/../config/paypal.php', 'lunar.paypal');
     }
 }

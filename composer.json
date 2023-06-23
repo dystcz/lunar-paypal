@@ -20,7 +20,10 @@
     ],
     "require": {
         "php": "^8.1",
-        "illuminate/support": "^10.0"
+        "illuminate/support": "^10.0",
+        "lunarphp/lunar": "^0.3",
+        "spatie/laravel-data": "^3.6",
+        "srmklive/paypal": "~3.0"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.13",
@@ -60,7 +63,7 @@
                 "Dystcz\\LunarPaypal\\LunarPaypalServiceProvider"
             ],
             "aliases": {
-                "LunarPaypal": "Dystcz\\LunarPaypal\\LunarPaypalFacade"
+                "LunarPaypal": "PaypalFacade"
             }
         }
     },
