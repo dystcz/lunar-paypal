@@ -198,7 +198,7 @@ class PaypalManager
 
         App::make(SetPaymentIntentIdOnCart::class)($cart, $orderId);
 
-        return PayPalOrder::from(['id' => $orderId]);
+        return $this->fetchOrder($orderId);
     }
 
     protected function checkForErrors(array $response): void
