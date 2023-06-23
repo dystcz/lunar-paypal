@@ -30,12 +30,6 @@ class LunarPaypalServiceProvider extends ServiceProvider
                 __DIR__.'/../config/paypal.php' => config_path('lunar/paypal.php'),
             ], 'lunar.paypal.config');
         }
-
-        // Set our config for the srmklive/paypal package.
-        Config::set('paypal', [
-            ...Config::get('paypal'),
-            ...Config::get('lunar.paypal'),
-        ]);
     }
 
     /**

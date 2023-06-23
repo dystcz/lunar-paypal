@@ -60,22 +60,7 @@ abstract class TestCase extends Orchestra
         $app->useEnvironmentPath(__DIR__.'/..');
         $app->bootstrapWith([LoadEnvironmentVariables::class]);
 
-        Config::set('lunar.paypal', [
-            'sandbox' => [
-                'client_id' => env('PAYPAL_SANDBOX_CLIENT_ID', ''),
-                'client_secret' => env('PAYPAL_SANDBOX_CLIENT_SECRET', ''),
-                'app_id' => 'APP-80W284485P519543T',
-            ],
-
-            'return_url' => env('PAYPAL_RETURN_URL', ''),
-            'cancel_url' => env('PAYPAL_CANCEL_URL', ''),
-        ]);
-
-        // Set our config for the srmklive/paypal package.
-        Config::set('paypal', [
-            ...Config::get('paypal'),
-            ...Config::get('lunar.paypal'),
-        ]);
+        Config::set('lunar.paypal', require __DIR__.'/../config/paypal.php');
 
         /**
          * App configuration

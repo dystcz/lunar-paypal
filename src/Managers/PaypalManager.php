@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Lunar\Models\Cart;
 use Lunar\Models\Transaction;
-use Srmklive\PayPal\Facades\PayPal;
+use Srmklive\PayPal\Services\PayPal;
 
 class PaypalManager
 {
@@ -33,8 +33,7 @@ class PaypalManager
      */
     public function getClient(): \Srmklive\PayPal\Services\PayPal
     {
-        /** @var \Srmklive\PayPal\Services\PayPal $provider */
-        $provider = PayPal::setProvider();
+        $provider = new PayPal(Config::get('lunar.paypal'));
 
         $provider->getAccessToken();
 
