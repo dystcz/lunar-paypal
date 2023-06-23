@@ -1,50 +1,15 @@
 <?php
 
 use Dystcz\LunarPaypal\Enums\AuthorizedPaymentStatus;
-use Dystcz\LunarPaypal\Enums\OrderStatus;
 use Dystcz\LunarPaypal\Facades\PaypalFacade;
 use Dystcz\LunarPaypal\PaypalPaymentType;
 use Dystcz\LunarPaypal\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Lunar\Base\DataTransferObjects\PaymentCapture;
 use Lunar\Models\Transaction;
+use function Pest\Faker\fake;
 
 uses(TestCase::class, RefreshDatabase::class);
-
-it('works when transaction refers to paypal order', function () {
-    /**
-     * Since we are not mocking the PayPal client, use a real PayPal order id.
-     * Note: the order has to be in the approved state. (use CreateIntentTest.php)
-     */
-    $paymentIntentId = '3U315607912124635';
-
-    $transaction = Transaction::factory()
-        ->create([
-            'reference' => $paymentIntentId,
-            'amount' => 1000,
-            'meta' => [
-                'payment_intent_origin' => 'order',
-            ],
-        ]);
-
-    $payment = new PaypalPaymentType();
-
-    $response = $payment->capture($transaction, 1000);
-
-    expect($response)->toBeInstanceOf(PaymentCapture::class)
-        ->and($response->success)->toBeTrue();
-
-    $this->assertDatabaseHas((new Transaction)->getTable(), [
-        'parent_transaction_id' => $transaction->id,
-        'type' => 'capture',
-        'amount' => $transaction->amount,
-    ]);
-
-    $paypalOrder = PaypalFacade::fetchOrder($paymentIntentId);
-
-    expect($paypalOrder->status)
-        ->toBe(OrderStatus::COMPLETED);
-});
 
 it('works when transaction refers to to paypal payment', function () {
     /**
@@ -57,6 +22,7 @@ it('works when transaction refers to to paypal payment', function () {
 
     $transaction = Transaction::factory()
         ->create([
+            'id' => fake()->randomNumber(8),
             'reference' => $paypalPaymentId,
             'amount' => 1000,
             'meta' => [

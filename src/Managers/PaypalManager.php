@@ -86,6 +86,18 @@ class PaypalManager
     }
 
     /**
+     * Authorize a payment for an order.
+     */
+    public function authorizeOrder(string $orderId): PayPalOrder
+    {
+        $response = $this->getClient()->authorizePaymentOrder($orderId);
+
+        $this->checkForErrors($response);
+
+        return PayPalOrder::from($response);
+    }
+
+    /**
      * Capture a payment for an authorized payment.
      */
     public function capturePayment(Transaction $transaction, float $amount): CapturedPayment

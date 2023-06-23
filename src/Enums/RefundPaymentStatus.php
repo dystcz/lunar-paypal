@@ -8,4 +8,12 @@ enum RefundPaymentStatus: string
     case FAILED = 'FAILED';
     case PENDING = 'PENDING';
     case COMPLETED = 'COMPLETED';
+
+    public static function failed(): array
+    {
+        return [
+            self::CANCELLED,
+            self::FAILED,
+        ];
+    }
 }

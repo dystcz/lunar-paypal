@@ -21,6 +21,7 @@ it('works', function () {
 
     $transaction = Transaction::factory()
         ->create([
+            'id' => fake()->randomNumber(8),
             'reference' => $paypalPaymentId,
             'amount' => 1000,
             'meta' => [

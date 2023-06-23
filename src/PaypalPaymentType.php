@@ -4,9 +4,12 @@ namespace Dystcz\LunarPaypal;
 
 use Dystcz\LunarPaypal\Actions\SetPaymentIntentIdOnCart;
 use Dystcz\LunarPaypal\Contracts\Payment;
-use Dystcz\LunarPaypal\Data\Amount;
+use Dystcz\LunarPaypal\Data\AuthorizedPayment;
 use Dystcz\LunarPaypal\Data\CapturedPayment;
 use Dystcz\LunarPaypal\Data\Order;
+use Dystcz\LunarPaypal\Data\RefundPayment;
+use Dystcz\LunarPaypal\Enums\AuthorizedPaymentStatus;
+use Dystcz\LunarPaypal\Enums\CapturedPaymentStatus;
 use Dystcz\LunarPaypal\Enums\OrderStatus;
 use Dystcz\LunarPaypal\Enums\RefundPaymentStatus;
 use Dystcz\LunarPaypal\Exceptions\InvalidRequestException;
@@ -19,7 +22,6 @@ use Lunar\Base\DataTransferObjects\PaymentCapture;
 use Lunar\Base\DataTransferObjects\PaymentRefund;
 use Lunar\Models\Transaction;
 use Lunar\PaymentTypes\AbstractPayment;
-use Spatie\LaravelData\Data;
 
 class PaypalPaymentType extends AbstractPayment
 {
@@ -61,14 +63,12 @@ class PaypalPaymentType extends AbstractPayment
             );
         }
 
-        $this->paymentIntent = $this->paypal->fetchOrder(
-            $this->data['payment_intent']
-        );
+        $this->paymentIntent = $this->paypal->fetchOrder($this->data['payment_intent']);
 
-        if ($this->doesOrderAutomaticCapture()) {
-            $this->paymentIntent = $this->paypal->captureOrder(
-                $this->data['payment_intent']
-            );
+        if ($this->policy === 'automatic') {
+            $this->paymentIntent = $this->paypal->captureOrder($this->paymentIntent->id);
+        } else {
+            $this->paymentIntent = $this->paypal->authorizeOrder($this->paymentIntent->id);
         }
 
         $this->setPaymentIntentIdOnCart();
@@ -88,15 +88,8 @@ class PaypalPaymentType extends AbstractPayment
      */
     public function capture(Transaction $transaction, $amount = 0): PaymentCapture
     {
-        $paymentIntentOrigin = $transaction->meta?->payment_intent_origin;
-
         try {
-            if ($paymentIntentOrigin === 'order') {
-                // NOTE: Doesn't support amount
-                $response = $this->paypal->captureOrder($transaction->reference);
-            } else {
-                $response = $this->paypal->capturePayment($transaction, $amount);
-            }
+            $capturedPayment = $this->paypal->capturePayment($transaction, $amount);
         } catch (InvalidRequestException $e) {
             report($e);
 
@@ -108,16 +101,15 @@ class PaypalPaymentType extends AbstractPayment
 
         $transaction->order->transactions()->create([
             'parent_transaction_id' => $transaction->id,
-            'success' => true,
+            'success' => ! in_array($capturedPayment->status, CapturedPaymentStatus::failed()),
             'type' => 'capture',
             'driver' => 'paypal',
-            'amount' => $paymentIntentOrigin === 'order' ? $transaction->amount : $amount,
-            'reference' => $response->id,
+            'amount' => $amount,
+            'reference' => $capturedPayment->id,
             'status' => 'succeeded',
             'notes' => '',
             'captured_at' => now(),
             'card_type' => 'paypal',
-            'meta' => $transaction->meta,
         ]);
 
         return new PaymentCapture(success: true);
@@ -126,8 +118,11 @@ class PaypalPaymentType extends AbstractPayment
     /**
      * Refund a captured transaction
      */
-    public function refund(Transaction $transaction, int $amount = 0, $notes = null): PaymentRefund
-    {
+    public function refund(
+        Transaction $transaction,
+        int $amount = 0,
+        $notes = null
+    ): PaymentRefund {
         try {
             $refund = $this->paypal->refundPayment($transaction, $amount, $notes);
         } catch (InvalidRequestException $e) {
@@ -141,14 +136,9 @@ class PaypalPaymentType extends AbstractPayment
 
         $this->order($transaction->order);
 
-        $this->createTransaction($refund, 'refund', [], [
-            'success' => $refund->status !== RefundPaymentStatus::FAILED,
-            'notes' => $notes,
-        ]);
+        $this->createTransaction($refund, 'refund', ['notes' => $notes]);
 
-        return new PaymentRefund(
-            success: true
-        );
+        return new PaymentRefund(success: true);
     }
 
     /**
@@ -162,19 +152,15 @@ class PaypalPaymentType extends AbstractPayment
                 'placed_at' => now(),
             ]);
 
-            $type = $this->policy === 'manual' ? 'intent' : 'capture';
+            foreach ($this->paymentIntent->payments() as $payment) {
+                $type = match (get_class($payment)) {
+                    AuthorizedPayment::class => 'intent',
+                    CapturedPayment::class => 'capture',
+                    RefundPayment::class => 'refund',
+                    default => null,
+                };
 
-            if ($type === 'capture') {
-                foreach ($this->paymentIntent->purchase_units as $unit) {
-                    /** @var CapturedPayment $capture */
-                    foreach ($unit->payments->captures as $capture) {
-                        $this->createTransaction($capture, 'capture');
-                    }
-                }
-            } else {
-                $payment = $this->createPaymentFromOrder();
-
-                $this->createTransaction($payment, 'intent', ['payment_intent_origin' => 'order']);
+                $this->createTransaction($payment, $type);
             }
         });
 
@@ -184,11 +170,17 @@ class PaypalPaymentType extends AbstractPayment
     protected function createTransaction(
         Payment $payment,
         string $type,
-        array $meta = [],
         array $data = []
     ): void {
         $this->order->transactions()->create([
-            'success' => in_array($payment->status, [OrderStatus::COMPLETED, OrderStatus::APPROVED]),
+            'success' => ! in_array(
+                $payment->status,
+                [
+                    ...AuthorizedPaymentStatus::failed(),
+                    ...CapturedPaymentStatus::failed(),
+                    ...RefundPaymentStatus::failed(),
+                ]
+            ),
             'type' => $type,
             'driver' => 'paypal',
             'amount' => $payment->amount->value,
@@ -197,10 +189,6 @@ class PaypalPaymentType extends AbstractPayment
             'notes' => '',
             'captured_at' => $type === 'capture' ? $payment->create_time : null,
             'card_type' => 'paypal',
-            'meta' => [
-                'payment_intent_origin' => 'payment',
-                ...$meta,
-            ],
             ...$data,
         ]);
     }
@@ -210,37 +198,11 @@ class PaypalPaymentType extends AbstractPayment
         App::make(SetPaymentIntentIdOnCart::class)($this->cart, $this->paymentIntent->id);
     }
 
-    protected function doesOrderAutomaticCapture(): bool
-    {
-        return $this->paymentIntent->status === OrderStatus::APPROVED
-            && $this->policy === 'automatic';
-    }
-
     protected function isReadyToBeReleased(): bool
     {
         return in_array($this->paymentIntent->status, [
             OrderStatus::APPROVED,
             OrderStatus::COMPLETED,
         ]);
-    }
-
-    /**
-     * PayPal doesn't have a concept of a payment for approved payments,
-     * only captured, authorized and rafunds are provided by PayPal.
-     * (https://developer.paypal.com/docs/api/orders/v2/#orders_create!c=200&path=purchase_units/payments&t=response)
-     * For that reason we need to create a transaction from the order using a fake payment object.
-     */
-    protected function createPaymentFromOrder(): Payment
-    {
-        return new class(id: $this->paymentIntent->id, amount: new Amount($this->order->currency_code, $this->paymentIntent->totalAmount()), status: OrderStatus::APPROVED, create_time: now()->toIso8601String()) extends Data implements Payment
-        {
-            public function __construct(
-                public string $id,
-                public Amount $amount,
-                public OrderStatus $status,
-                public string $create_time,
-            ) {
-            }
-        };
     }
 }

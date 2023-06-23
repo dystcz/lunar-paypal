@@ -10,4 +10,13 @@ enum CapturedPaymentStatus: string
     case PENDING = 'PENDING';
     case REFUNDED = 'REFUNDED';
     case FAILED = 'FAILED';
+
+    public static function failed(): array
+    {
+        return [
+            self::DECLINED,
+            self::REFUNDED,
+            self::FAILED,
+        ];
+    }
 }

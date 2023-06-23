@@ -2,6 +2,7 @@
 
 namespace Dystcz\LunarPaypal\Data;
 
+use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Optional;
 
@@ -27,5 +28,19 @@ class PurchaseUnit extends Data
             fn (CapturedPayment $capturedPayment) => $capturedPayment->amount->value,
             0
         );
+    }
+
+    public function payments(): Collection
+    {
+        $payments = [
+            $this->payments?->captures,
+            $this->payments?->authorizations,
+            $this->payments?->refunds,
+        ];
+
+        return collect($payments)
+            ->filter(fn ($payment) => ! $payment instanceof Optional)
+            ->map(fn ($payment) => $payment->toCollection())
+            ->collapse();
     }
 }

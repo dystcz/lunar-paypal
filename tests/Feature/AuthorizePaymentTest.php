@@ -70,7 +70,6 @@ it('works when policy is set to automatic', function () {
     $this->assertDatabaseHas((new Transaction)->getTable(), [
         'order_id' => $cart->refresh()->order->id,
         'type' => 'capture',
-        'meta' => json_encode(['payment_intent_origin' => 'payment']),
     ]);
 });
 
@@ -102,6 +101,5 @@ it('works when policy is set to manual', function () {
     $this->assertDatabaseHas((new Transaction)->getTable(), [
         'order_id' => $cart->refresh()->order->id,
         'type' => 'intent',
-        'meta' => json_encode(['payment_intent_origin' => 'order']),
     ]);
 });

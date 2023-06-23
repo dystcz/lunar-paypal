@@ -3,6 +3,7 @@
 namespace Dystcz\LunarPaypal\Data;
 
 use Dystcz\LunarPaypal\Enums\OrderStatus;
+use Illuminate\Support\Collection;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
@@ -35,5 +36,16 @@ class Order extends Data
     {
         return $this->purchase_units->reduce(fn (PurchaseUnit $purchaseUnit) => $purchaseUnit->totalCapturedAmount(),
             0);
+    }
+
+    public function payments(): Collection
+    {
+        if ($this->purchase_units === null) {
+            return collect();
+        }
+
+        return $this->purchase_units->toCollection()
+            ->map(fn (PurchaseUnit $purchaseUnit) => $purchaseUnit->payments())
+            ->collapse();
     }
 }
