@@ -3,7 +3,6 @@
 namespace Dystcz\LunarPaypal;
 
 use Dystcz\LunarPaypal\Managers\PaypalManager;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Lunar\Facades\Payments;
 

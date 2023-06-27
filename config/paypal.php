@@ -33,6 +33,13 @@ return [
     'return_url' => env('PAYPAL_RETURN_URL', ''),
     'cancel_url' => env('PAYPAL_CANCEL_URL', ''),
 
+    /**
+     * Webhooks Configuration
+     */
+    'webhook' => [
+        'id' => env('PAYPAL_WEBHOOK_ID', ''),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Capture policy

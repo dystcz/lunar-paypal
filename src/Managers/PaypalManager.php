@@ -31,7 +31,7 @@ class PaypalManager
     /**
      * Return the PayPal client
      */
-    public function getClient(): \Srmklive\PayPal\Services\PayPal
+    public function getClient(): PayPal
     {
         $provider = new PayPal(Config::get('lunar.paypal'));
 
