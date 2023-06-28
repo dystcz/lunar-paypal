@@ -2,6 +2,7 @@
 
 namespace Dystcz\LunarPaypal;
 
+use Carbon\Carbon;
 use Dystcz\LunarPaypal\Actions\SetPaymentIntentIdOnCart;
 use Dystcz\LunarPaypal\Contracts\Payment;
 use Dystcz\LunarPaypal\Data\AuthorizedPayment;
@@ -187,7 +188,7 @@ class PaypalPaymentType extends AbstractPayment
             'reference' => $payment->id,
             'status' => $payment->status,
             'notes' => '',
-            'captured_at' => $type === 'capture' ? $payment->create_time : null,
+            'captured_at' => $type === 'capture' ? Carbon::parse($payment->create_time) : null,
             'card_type' => 'paypal',
             ...$data,
         ]);
