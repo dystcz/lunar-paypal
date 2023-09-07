@@ -23,7 +23,7 @@ class CapturedPayment extends Data implements Payment
         public readonly DataCollection $links,
         public readonly Amount $amount,
         public readonly SellerProtection $seller_protection,
-        public readonly SellerReceivableBreakdown $seller_receivable_breakdown,
+        public readonly SellerReceivableBreakdown|Optional $seller_receivable_breakdown,
         public readonly ProcessorResponse|Optional $processor_response,
         public readonly string $create_time,
         public readonly string $update_time
