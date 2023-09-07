@@ -19,7 +19,7 @@ class RefundPayment extends Data implements Payment
         public readonly array $links,
         public readonly Amount $amount,
         public readonly Payer|Optional $payer,
-        public readonly SellerReceivableBreakdown $seller_payable_breakdown,
+        public readonly SellerReceivableBreakdown|Optional $seller_payable_breakdown,
         public readonly string $create_time,
         public readonly string $update_time
     ) {
