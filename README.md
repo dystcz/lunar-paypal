@@ -1,4 +1,4 @@
-# Very short description of the package
+# Lunar Paypal
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/dystcz/lunar-paypal.svg?style=flat-square)](https://packagist.org/packages/dystcz/lunar-paypal)
 [![Total Downloads](https://img.shields.io/packagist/dt/dystcz/lunar-paypal.svg?style=flat-square)](https://packagist.org/packages/dystcz/lunar-paypal)
