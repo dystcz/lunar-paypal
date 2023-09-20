@@ -30,6 +30,7 @@ abstract class TestCase extends Orchestra
     {
         return [
             \Dystcz\LunarPaypal\LunarPaypalServiceProvider::class,
+
             \Srmklive\PayPal\Providers\PayPalServiceProvider::class,
             \Spatie\LaravelData\LaravelDataServiceProvider::class,
 
