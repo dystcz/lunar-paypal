@@ -53,16 +53,19 @@ class CartBuilder
             'type' => 'billing',
         ]);
 
-        ProductVariant::factory()->create()->each(function ($variant) use ($currency) {
+        ProductVariant::factory()->create()->each(function ($variant) use ($cart, $currency) {
             $variant->prices()->create([
                 'price' => 1.99,
                 'currency_id' => $currency->id,
             ]);
+
+            CartLine::factory()->create([
+                'cart_id' => $cart->id,
+                'purchasable_type' => ProductVariant::class,
+                'purchasable_id' => $variant->id,
+            ]);
         });
 
-        CartLine::factory()->create([
-            'cart_id' => $cart->id,
-        ]);
 
         return $cart;
     }

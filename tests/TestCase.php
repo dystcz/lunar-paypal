@@ -2,20 +2,11 @@
 
 namespace Dystcz\LunarPaypal\Tests;
 
-use Cartalyst\Converter\Laravel\ConverterServiceProvider;
-use Dystcz\LunarPaypal\LunarPaypalServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
 use Illuminate\Support\Facades\Config;
-use Kalnoy\Nestedset\NestedSetServiceProvider;
-use Lunar\LunarServiceProvider;
 use Lunar\Models\Currency;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Spatie\Activitylog\ActivitylogServiceProvider;
-use Spatie\LaravelBlink\BlinkServiceProvider;
-use Spatie\LaravelData\LaravelDataServiceProvider;
-use Spatie\MediaLibrary\MediaLibraryServiceProvider;
-use Srmklive\PayPal\Providers\PayPalServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
@@ -38,17 +29,18 @@ abstract class TestCase extends Orchestra
     protected function getPackageProviders($app)
     {
         return [
-            LunarPaypalServiceProvider::class,
-            PayPalServiceProvider::class,
-            LaravelDataServiceProvider::class,
+            \Dystcz\LunarPaypal\LunarPaypalServiceProvider::class,
+
+            \Srmklive\PayPal\Providers\PayPalServiceProvider::class,
+            \Spatie\LaravelData\LaravelDataServiceProvider::class,
 
             // Lunar core
-            LunarServiceProvider::class,
-            MediaLibraryServiceProvider::class,
-            ActivitylogServiceProvider::class,
-            ConverterServiceProvider::class,
-            BlinkServiceProvider::class,
-            NestedSetServiceProvider::class,
+            \Lunar\LunarServiceProvider::class,
+            \Spatie\MediaLibrary\MediaLibraryServiceProvider::class,
+            \Spatie\Activitylog\ActivitylogServiceProvider::class,
+            \Cartalyst\Converter\Laravel\ConverterServiceProvider::class,
+            \Spatie\LaravelBlink\BlinkServiceProvider::class,
+            \Kalnoy\Nestedset\NestedSetServiceProvider::class,
         ];
     }
 

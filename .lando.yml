@@ -1,0 +1,8 @@
+name: lunar-paypal
+recipe: laravel
+config:
+  webroot: .
+  php: '8.2'
+  via: nginx
+  database: mysql
+  cache: redis

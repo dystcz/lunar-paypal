@@ -60,7 +60,7 @@ it('works when policy is set to automatic', function () {
     $payment = new PaypalPaymentType();
 
     $response = $payment->cart($cart)->withData([
-        'payment_intent' => $cart->meta->payment_intent,
+        'payment_intent' => $cart->meta['payment_intent'],
     ])->authorize();
 
     expect($response)->toBeInstanceOf(PaymentAuthorize::class)
@@ -71,14 +71,14 @@ it('works when policy is set to automatic', function () {
         'order_id' => $cart->refresh()->order->id,
         'type' => 'capture',
     ]);
-});
+})->skip('Requires a real PayPal order id');
 
 it('works when policy is set to manual', function () {
     /**
      * Since we are not mocking the PayPal client, use a real PayPal order id.
      * Note: the order has to be in the approved state and created witn lunar.paypal.policy set to manual. (use CreateIntentTest.php)
      */
-    $paymentIntentId = '2D132449EH2538442';
+    $paymentIntentId = '8Y994792DJ983464V';
 
     Config::set('lunar.paypal.policy', 'manual');
 
@@ -91,7 +91,7 @@ it('works when policy is set to manual', function () {
     $payment = new PaypalPaymentType();
 
     $response = $payment->cart($cart)->withData([
-        'payment_intent' => $cart->meta->payment_intent,
+        'payment_intent' => $cart->meta['payment_intent'],
     ])->authorize();
 
     expect($response)->toBeInstanceOf(PaymentAuthorize::class)
@@ -102,4 +102,4 @@ it('works when policy is set to manual', function () {
         'order_id' => $cart->refresh()->order->id,
         'type' => 'intent',
     ]);
-});
+})->skip('Requires a real PayPal order id');

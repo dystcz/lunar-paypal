@@ -14,5 +14,5 @@ it('creates new paypal order', function () {
 
     PaypalFacade::createIntent($cart->calculate());
 
-    expect($cart->refresh()->meta->payment_intent)->not->toBeNull();
+    expect($cart->refresh()->meta['payment_intent'])->not->toBeNull();
 });
