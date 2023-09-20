@@ -19,6 +19,7 @@ jobs:
 
       - name: Setup Laravel environment
         run: |
+          cp .env.testing.example .env.testing
           echo "PAYPAL_MODE=${{ secrets.PAYPAL_MODE }}" >> .env.testing
           echo "PAYPAL_SANDBOX_CLIENT_ID=${{ secrets.PAYPAL_SANDBOX_CLIENT_ID }}" >> .env.testing
           echo "PAYPAL_SANDBOX_CLIENT_SECRET=${{ secrets.PAYPAL_SANDBOX_CLIENT_SECRET }}" >> .env.testing
