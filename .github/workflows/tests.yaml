@@ -12,6 +12,8 @@ jobs:
       matrix:
         php: [ 8.2 ]
         laravel: [ 10 ]
+        
+    environment: Tests
 
     steps:
       - name: Checkout Code
