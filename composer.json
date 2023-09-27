@@ -21,7 +21,7 @@
     "require": {
         "php": "^8.2",
         "illuminate/support": "^10.0",
-        "lunarphp/lunar": "^0.5",
+        "lunarphp/lunar": "^0.6",
         "spatie/laravel-data": "^3.6",
         "srmklive/paypal": "~3.0"
     },
